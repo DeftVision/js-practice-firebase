@@ -3,6 +3,7 @@ import { Container } from '@mui/material';
 import Home from './pages/Home'
 import Error from './pages/Error'
 import Navbar from './header/Navbar'
+import FirebaseForm from './pages/FirebaseForm'
 
 function App() {
   return (
@@ -13,6 +14,7 @@ function App() {
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="*" element={<Error />} />
+              <Route path="/firebase-form" element={<FirebaseForm />} />
             </Routes>
           </div>
         </Container>
