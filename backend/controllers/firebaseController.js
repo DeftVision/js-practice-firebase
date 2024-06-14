@@ -9,7 +9,7 @@ exports.newForm = async (req, res) => {
             })
         }
 
-        const file = new file({name, fileUpload});
+        const file = new fbModel({name, fileUpload});
         await fbModel.save();
         return res.send({
             message: 'file form saved successfully',
