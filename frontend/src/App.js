@@ -2,8 +2,9 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Container } from '@mui/material';
 import Home from './pages/Home'
 import Error from './pages/Error'
+import UserForm from './pages/UserForm'
 import Navbar from './header/Navbar'
-import FirebaseForm from './pages/FirebaseForm'
+import DocumentForm from './pages/DocumentForm'
 
 function App() {
   return (
@@ -13,8 +14,9 @@ function App() {
           <div className="App">
             <Routes>
               <Route path="/" element={<Home />} />
+              <Route path="/create-user" element={<UserForm />} />
               <Route path="*" element={<Error />} />
-              <Route path="/firebase-form" element={<FirebaseForm />} />
+              <Route path="/document-form" element={<DocumentForm />} />
             </Routes>
           </div>
         </Container>

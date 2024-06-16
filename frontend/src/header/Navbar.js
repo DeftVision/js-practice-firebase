@@ -1,4 +1,4 @@
-import { AppBar, Toolbar, List, ListItem, ListItemText, ListItemButton } from '@mui/material';
+import { AppBar, Toolbar, List, ListItem, ListItemButton } from '@mui/material';
 import { Link } from 'react-router-dom';
 
 const Navbar = () => {
@@ -7,13 +7,18 @@ const Navbar = () => {
             <Toolbar>
                 <List sx={{display: 'inline-flex'}}>
                     <ListItem disablePadding>
-                        <ListItemButton variant="outlined" component={Link} to="/">
+                        <ListItemButton variant="text" component={Link} to="/">
                             Home
                         </ListItemButton>
                     </ListItem>
                     <ListItem disablePadding>
-                        <ListItemButton variant="outlined" component={Link} to="/firebase-form">
-                            Forms
+                        <ListItemButton variant="text" component={Link} to="/document-form">
+                            Documents
+                        </ListItemButton>
+                    </ListItem>
+                    <ListItem disablePadding>
+                        <ListItemButton variant="text" component={Link} to="/create-user">
+                            Users
                         </ListItemButton>
                     </ListItem>
                 </List>

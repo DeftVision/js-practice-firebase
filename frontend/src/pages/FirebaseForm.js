@@ -1,4 +1,4 @@
-import { Box, Button, styled,  TextField, Typography } from '@mui/material';
+import { Box, Button, styled, TextField, Typography } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload'
 import { useState, useEffect } from 'react';
 import {v4 as uuid} from 'uuid';
@@ -11,7 +11,7 @@ const form_default = {
 
 export default function FirebaseForm () {
     const [form, setForm] = useState(form_default);
-    const [error, setError] = useState(null);
+
 
     const VisuallyHiddenInput = styled('input')({
         clip: 'rect(0 0 0 0)',
@@ -25,23 +25,79 @@ export default function FirebaseForm () {
         width: 1,
     });
 
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        const response = await fetch(`http://localhost:8000/api/firebase/create`, {
+            method: "POST",
+            body: JSON.stringify(form),
+            headers: {
+                "Content-Type": "application/json",
+            }
+        })
+        const _response = await response.json();
+        if(!response.ok) {
+            console.log(_response.error)
+        } else {
+            console.log(_response.message);
+        }
+    }
 
     return (
         <Box>
-            <Typography padding={3}>firebase form</Typography>
+            <form onSubmit={handleSubmit}>
+                   <Box>
+                       <TextField
+                           required
+                           aria-required
+                           autoComplete="file-name"
+                           type="text"
+                           fullWidth
+                           id="file-name"
+                           label="Name"
+                           variant="outlined"
+                           sx={{marginBottom: 3}}
+                           value={form.name}
+                           onChange={(e) => {
+                               setForm({
+                                   ...form,
+                                   name: e.target.value,
+                               })
+                           }}
+                       />
+                   </Box>
 
-            <form>
-                <TextField fullWidth id="name" label="Name" variant="outlined" sx={{paddingBottom: 3}} />
-                <Button
-                    component="label"
-                    role={undefined}
-                    variant="contained"
-                    tabIndex={-1}
-                    startIcon={<CloudUploadIcon />}
-                >
-                    Upload file
-                    <VisuallyHiddenInput type="file" />
-                </Button>
+                    <Box>
+                        <Button
+                            autoComplete="file"
+                            component="label"
+                            variant="outlined"
+                            id="file"
+                            tabIndex={-1}
+                            sx={{marginBottom: 3}}
+                            startIcon={<CloudUploadIcon />}
+                            value={form.formUpload}
+                            onChange={(e) => {
+                                setForm({
+                                    ...form,
+                                    formUpload: e.target.value
+                                })
+                            }}
+                        >
+                            Upload file
+                            <VisuallyHiddenInput type="file" />
+                        </Button>
+                    </Box>
+                <Box>
+                    <Button
+                        id="submit-button"
+                        sx={{margin: 0}}
+                        variant="outlined"
+                        type="submit"
+                    >
+                        Submit
+                    </Button>
+                </Box>
             </form>
         </Box>
     );
