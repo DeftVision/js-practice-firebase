@@ -57,8 +57,16 @@ export default function DocumentForm({newDocument}) {
         }
     }, [])
 
+    useEffect(() => {
+        async function  SaveToDatabase() {
+            if(getDownloadURL) {
+
+            }
+        }
+    }, [form]);
+
+
     const handleFileChange = async (e) => {
-        // WHAT DOES THIS DO?
         const file = e.target.files[0];
         if(file) {
             setFileName(file.name);
@@ -79,7 +87,6 @@ export default function DocumentForm({newDocument}) {
                 },
                 async () => {
                     try {
-                        // WHAT DOES THIS DO?
                         const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
                         setForm((prevForm) => ({
                             ...prevForm,
@@ -121,12 +128,6 @@ export default function DocumentForm({newDocument}) {
         } else {
             console.log(_response.message);
         }
-
-        // is this needed with the save button disabled?
-        /*if(!form.docUpload) {
-            console.log('File is not uploaded yet. Please wait.');
-            return;
-        }*/
     }
 
     return (
