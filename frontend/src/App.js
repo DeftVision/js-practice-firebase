@@ -5,6 +5,7 @@ import Error from './pages/Error'
 import UserForm from './pages/UserForm'
 import Navbar from './header/Navbar'
 import DocumentForm from './pages/DocumentForm'
+import DocumentList from './pages/DocumentList'
 
 function App() {
   return (
@@ -16,7 +17,9 @@ function App() {
               <Route path="/" element={<Home />} />
               <Route path="/create-user" element={<UserForm />} />
               <Route path="*" element={<Error />} />
-              <Route path="/document-form" element={<DocumentForm />} />
+              <Route path="/document-form" element={<DocumentForm newDocument />} />
+              <Route path="/update/:id" element={<DocumentForm />} />
+              <Route path="/Documents" element={<DocumentList />} />
             </Routes>
           </div>
         </Container>

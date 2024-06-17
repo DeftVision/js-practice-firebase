@@ -4,6 +4,7 @@ import CloudUploadIcon from '@mui/icons-material/CloudUpload'
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import {app} from '../components/firebase'
 import { v3 as uuid } from 'uuid';
+import {useParams} from "react-router-dom";
 
 const form_default = {
     docName: "",
@@ -11,11 +12,12 @@ const form_default = {
     docUpload: ""
 }
 
-export default function DocumentForm() {
+export default function DocumentForm({newDocument}) {
     const [form, setForm] = useState(form_default);
     const [fileName, setFileName] = useState("");
     const [uploadProgress, setUploadProgress] = useState(0);
     const [isUploading, setIsUploading] = useState(false);
+    const {id} = useParams();
 
 
     // uses the upload button as a label to access file navigator to select file to upload
@@ -31,7 +33,32 @@ export default function DocumentForm() {
         width: 1,
     });
 
+    useEffect(() => {
+        async function editDocument() {
+            const response = await fetch(`http://localhost:8000/api/docs/document/${id}`, {
+                method: 'GET',
+                headers: {
+                    "Content-Type": "application/json",
+                }
+            });
+
+            const _response = await response.json();
+            if(response.ok) {
+               const {docName, category, docUpload} = _response.document;
+               setForm({docName, category, docUpload})
+                console.log(_response.message);
+            } else {
+                console.error(_response.error);
+            }
+        }
+
+        if(!newDocument) {
+            editDocument();
+        }
+    }, [])
+
     const handleFileChange = async (e) => {
+        // WHAT DOES THIS DO?
         const file = e.target.files[0];
         if(file) {
             setFileName(file.name);
@@ -52,6 +79,7 @@ export default function DocumentForm() {
                 },
                 async () => {
                     try {
+                        // WHAT DOES THIS DO?
                         const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
                         setForm((prevForm) => ({
                             ...prevForm,
@@ -68,21 +96,20 @@ export default function DocumentForm() {
         }
     };
 
-    useEffect(() => {
-
-    }, []);
-
 
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        if(!form.docUpload) {
-            console.log('File is not uploaded yet. Please wait.');
-            return;
+        let url = 'http://localhost:8000/api/docs/new-document';
+        let method = 'POST';
+
+        if(!newDocument) {
+            url = `http://localhost:8000/api/docs/update/${id}`;
+            method = 'PATCH';
         }
 
-        const response = await fetch('http://localhost:8000/api/docs/new-document', {
-            method: 'POST',
+        const response = await fetch(url, {
+            method: method,
             body: JSON.stringify(form),
             headers: {
                 'Content-Type': 'application/json',
@@ -94,6 +121,12 @@ export default function DocumentForm() {
         } else {
             console.log(_response.message);
         }
+
+        // is this needed with the save button disabled?
+        /*if(!form.docUpload) {
+            console.log('File is not uploaded yet. Please wait.');
+            return;
+        }*/
     }
 
     return (
@@ -104,7 +137,7 @@ export default function DocumentForm() {
                        id="document-name"
                        type="text"
                        variant="outlined"
-                       label="document name"
+                       label="doc name"
                        fullWidth
                        autoComplete="document name"
                        sx={{marginBottom: 3}}
@@ -120,7 +153,7 @@ export default function DocumentForm() {
                        id="document-category"
                        type="text"
                        variant="outlined"
-                       label="document category"
+                       label="doc category"
                        fullWidth
                        autoComplete="document category"
                        sx={{marginBottom: 3}}

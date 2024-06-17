@@ -12,7 +12,7 @@ const Navbar = () => {
                         </ListItemButton>
                     </ListItem>
                     <ListItem disablePadding>
-                        <ListItemButton variant="text" component={Link} to="/document-form">
+                        <ListItemButton variant="text" component={Link} to="/documents">
                             Documents
                         </ListItemButton>
                     </ListItem>
