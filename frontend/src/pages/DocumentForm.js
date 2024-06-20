@@ -58,12 +58,8 @@ export default function DocumentForm({newDocument}) {
     }, [])
 
     useEffect(() => {
-        async function  SaveToDatabase() {
-            if(getDownloadURL) {
 
-            }
-        }
-    }, [form]);
+    }, [uploadProgress]);
 
 
     const handleFileChange = async (e) => {
