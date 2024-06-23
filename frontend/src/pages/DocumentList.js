@@ -23,7 +23,7 @@ export default function DocumentList() {
 
     async function getDocuments() {
         try {
-            const response = await fetch (`http://localhost:8000/api/docs/documents`, {
+            const response = await fetch (`http://localhost:8002/api/docs/documents`, {
                 method: 'GET',
                 headers: {
                     "Content-Type": "application/json",
@@ -48,7 +48,7 @@ export default function DocumentList() {
 
     async function deleteDocument(documentId) {
         try {
-            const response = await fetch(`http://localhost:8000/api/docs/delete/${documentId}`, {
+            const response = await fetch(`http://localhost:8002/api/docs/delete/${documentId}`, {
                 method: "DELETE",
             });
 
@@ -79,7 +79,7 @@ export default function DocumentList() {
                     </TableHead>
                     <TableBody>
                         {documents.map((document) => <TableRow key={document._id}>
-                            <TableCell>{document.docName}</TableCell>
+                            <TableCell>{document.name}</TableCell>
                             <TableCell>{document.category}</TableCell>
                             <TableCell>
                                 <IconButton component={Link} to={`/update/${document._id}`}>
