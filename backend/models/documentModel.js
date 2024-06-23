@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 const schema = mongoose.Schema;
 
 const documentSchema = new schema({
-    docName: {
+    name: {
         type: String,
         require: true,
     },
@@ -11,7 +11,7 @@ const documentSchema = new schema({
         type: String,
         require: true,
     },
-    docUpload: {
+    downloadUrl: {
         type: String,
         require: true,
     },

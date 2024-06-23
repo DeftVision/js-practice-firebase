@@ -5,7 +5,7 @@ const firebaseRoutes = require('./routes/firebaseRoute');
 const userRoutes = require('./routes/userRoute');
 const documentRoutes = require('./routes/documentRoute');
 
-const port = process.env.PORT || 8001;
+const port = process.env.PORT || 8003;
 const connectDB = require('./config/db');
 connectDB();
 
