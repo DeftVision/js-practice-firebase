@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 const schema = mongoose.Schema;
 
 const documentSchema = new schema({
-    name: {
+    title: {
         type: String,
         require: true,
     },
@@ -15,6 +15,10 @@ const documentSchema = new schema({
         type: String,
         require: true,
     },
+    fileName:{
+        type: String,
+        require: true,
+    }
 }, {timestamps: true})
 
 const documentModel = mongoose.model("Document", documentSchema);

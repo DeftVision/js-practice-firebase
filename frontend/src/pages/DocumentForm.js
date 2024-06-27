@@ -1,24 +1,24 @@
-import {Box, Button, Typography, TextField, LinearProgress, styled} from '@mui/material';
-import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
-import CloudUploadIcon from '@mui/icons-material/CloudUpload'
-import {useParams} from 'react-router-dom';
-import {useState, useEffect} from 'react'
-import {app} from '../components/firebase'
+import { Box, Button, Typography, TextField, LinearProgress, styled } from '@mui/material';
+import { getStorage, ref, uploadBytesResumable, getDownloadURL, deleteObject } from 'firebase/storage';
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import { useParams } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import {app} from '../components/firebase';
 
 const form_default = {
-    name: "",
+    title: "",
     category: "",
     downloadUrl: "",
-}
+    fileName: ""
+};
 
-export default function DocumentForm ({newDocument}) {
+export default function DocumentForm({ newDocument }) {
     const [form, setForm] = useState(form_default);
     const [uploadProgress, setUploadProgress] = useState(0);
     const [uploading, setUploading] = useState('default');
     const [fileName, setFileName] = useState('');
     const [file, setFile] = useState(null);
-    const {id} = useParams();
-
+    const { id } = useParams();
 
     const VisuallyHiddenInput = styled('input')({
         clip: 'rect(0 0 0 0)',
@@ -34,7 +34,7 @@ export default function DocumentForm ({newDocument}) {
 
     useEffect(() => {
         async function editDocument() {
-            const response = await fetch(`http://localhost:8002/api/docs/document/${id}`, {
+            const response = await fetch(`http://localhost:8004/api/docs/document/${id}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json'
@@ -42,28 +42,39 @@ export default function DocumentForm ({newDocument}) {
             });
 
             const _response = await response.json();
-            if(response.ok) {
-                const {name, category, downloadUrl} = _response.document;
-                setForm({name, category, downloadUrl});
+            if (response.ok) {
+                const { title, category, downloadUrl, fileName } = _response.document;
+                setForm({ title, category, downloadUrl, fileName });
             } else {
                 console.error('Error occurred while fetching document');
             }
         }
-        if(!newDocument) {
+        if (!newDocument) {
             editDocument();
         }
-    }, [])
+    }, [id, newDocument]);
 
-    const handleFileChange = async (e) => {
+    const handleFileChange = (e) => {
         const selectedFile = e.target.files[0];
-        if(selectedFile) {
+        if (selectedFile) {
             setFileName(selectedFile.name);
-            setFile(selectedFile)
+            setFile(selectedFile);
+        }
+    };
+
+    const deleteExistingFile = async (filePath) => {
+        const storage = getStorage();
+        const fileRef = ref(storage, filePath);
+        try {
+            await deleteObject(fileRef);
+            console.log(`File ${filePath} deleted successfully`);
+        } catch (error) {
+            console.log('Failed to delete document', error);
         }
     }
 
-    const uploadFileToFirebase = () => {
-        if(file) {
+    const uploadFileToFirebase = async () => {
+        if (file) {
             const storage = getStorage();
             const storageRef = ref(storage, `uploads/${file.name}`);
             const uploadTask = uploadBytesResumable(storageRef, file);
@@ -79,30 +90,36 @@ export default function DocumentForm ({newDocument}) {
                 (error) => {
                     console.error('upload failed', error);
                     setUploading('error');
-                },
-                async () => {
-                    try {
-                        const downloadUrl = await getDownloadURL(uploadTask.snapshot.ref);
-                        setForm((prevForm) => ({
-                            ...prevForm,
-                            downloadUrl,
-                        }));
-                        setUploading('success');
-                    } catch (error) {
-                        console.error('Failed to get download URL: ', error)
-                    }
                 }
             );
+
+            try {
+                await uploadTask;
+                const downloadUrl = await getDownloadURL(uploadTask.snapshot.ref);
+                setForm((prevForm) => ({
+                    ...prevForm,
+                    downloadUrl,
+                    // Set the value of file stored in firebase to find and update/delete
+                    fileName: file.name
+                }));
+                setUploading('success');
+            } catch (error) {
+                console.error('Failed to get download URL: ', error);
+                setUploading('error');
+            }
+        } else {
+            throw new Error('No file selected');
         }
-    }
+
+    };
 
     const saveToDb = async () => {
-        let url = 'http://localhost:8002/api/docs/new-document/';
-        let method = 'POST'
+        let url = 'http://localhost:8004/api/docs/new-document/';
+        let method = 'POST';
 
-        if(!newDocument) {
-            url = `http://localhost:8002/api/docs/update/${id}`;
-            method = 'PATCH'
+        if (!newDocument) {
+            url = `http://localhost:8004/api/docs/update/${id}`;
+            method = 'PATCH';
         }
 
         const response = await fetch(url, {
@@ -114,36 +131,37 @@ export default function DocumentForm ({newDocument}) {
         });
 
         const _response = await response.json();
-        if(!response.ok) {
+        if (!response.ok) {
             console.error(_response.error);
         } else {
             console.log(_response.message);
         }
-    }
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if(form.name && form.category) {
+        if (form.title && form.category) {
             try {
+                if(!newDocument && form.fileName) {
+                    await deleteExistingFile(`uploads/${form.fileName}`);
+                }
                 await uploadFileToFirebase();
-                if(form.downloadUrl) {
+                if (form.downloadUrl) {
                     await saveToDb();
                 }
-            }
-            catch (error) {
+            } catch (error) {
                 console.error('failed to upload file or save document', error);
             }
         } else {
-            console.error('All fields required')
+            console.error('All fields required!!!');
         }
-    }
-
+    };
 
     useEffect(() => {
-        if(uploading === 'success') {
+        if (uploading === 'success') {
             saveToDb();
         }
-    }, [uploading])
+    }, [uploading]);
 
     return (
         <Box>
@@ -153,40 +171,40 @@ export default function DocumentForm ({newDocument}) {
                         id="document-name"
                         type="text"
                         variant="outlined"
-                        label="doc name"
+                        label="title"
                         fullWidth
                         autoComplete="document name"
-                        sx={{marginBottom: 3}}
-                        value={form.name}
+                        sx={{ marginBottom: 3 }}
+                        value={form.title}
                         onChange={(e) => {
                             setForm({
                                 ...form,
-                                name: e.target.value,
-                            })
+                                title: e.target.value,
+                            });
                         }}
                     />
                     <TextField
                         id="document-category"
                         type="text"
                         variant="outlined"
-                        label="doc category"
+                        label="category"
                         fullWidth
                         autoComplete="document category"
-                        sx={{marginBottom: 3}}
+                        sx={{ marginBottom: 3 }}
                         value={form.category}
                         onChange={(e) => {
                             setForm({
                                 ...form,
                                 category: e.target.value,
-                            })
+                            });
                         }}
                     />
                 </Box>
-                <Box sx={{display: 'flex', alignItems: 'center', marginBottom: 3}}>
+                <Box sx={{ display: 'flex', alignItems: 'center', marginBottom: 3 }}>
                     <Button
                         component="label"
                         variant="outlined"
-                        startIcon={<CloudUploadIcon/>}
+                        startIcon={<CloudUploadIcon />}
                     >
                         UPLOAD
                         <VisuallyHiddenInput
@@ -194,13 +212,13 @@ export default function DocumentForm ({newDocument}) {
                             onChange={handleFileChange}
                         />
                     </Button>
-                    <Typography sx={{marginLeft: 2}}>
+                    <Typography sx={{ marginLeft: 2 }}>
                         {fileName}
                     </Typography>
                 </Box>
                 {uploading === "uploading" && (
-                    <Box sx={{width: '100%', marginBottom: 3}}>
-                        <LinearProgress variant='determinate' value={uploadProgress}/>
+                    <Box sx={{ width: '100%', marginBottom: 3 }}>
+                        <LinearProgress variant='determinate' value={uploadProgress} />
                     </Box>
                 )}
                 <Box>
@@ -216,4 +234,3 @@ export default function DocumentForm ({newDocument}) {
         </Box>
     );
 };
-
