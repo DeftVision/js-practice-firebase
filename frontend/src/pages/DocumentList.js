@@ -13,8 +13,7 @@ import {
 import { Edit, Delete } from '@mui/icons-material';
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-
-
+import { getStorage, ref, deleteObject} from "firebase/storage";
 
 
 export default function DocumentList() {
@@ -23,7 +22,7 @@ export default function DocumentList() {
 
     async function getDocuments() {
         try {
-            const response = await fetch (`http://localhost:8002/api/docs/documents`, {
+            const response = await fetch (`http://localhost:8004/api/docs/documents`, {
                 method: 'GET',
                 headers: {
                     "Content-Type": "application/json",
@@ -46,20 +45,28 @@ export default function DocumentList() {
         getDocuments();
     }, []);
 
-    async function deleteDocument(documentId) {
+    async function deleteDocument(documentId, fileName) {
         try {
-            const response = await fetch(`http://localhost:8002/api/docs/delete/${documentId}`, {
+            // Delete the file from Firebase Storage
+            const storage = getStorage();
+            const fileRef = ref(storage, `uploads/${fileName}`);
+            await deleteObject(fileRef);
+
+            // Delete the document record from the database
+            const response = await fetch(`http://localhost:8004/api/docs/delete/${documentId}`, {
                 method: "DELETE",
             });
 
             if(response.ok) {
                 setDocuments(documents.filter(document => document._id !== documentId));
+            } else {
+                const _response = await response.json();
+                console.error(_response.error);
             }
         } catch (error) {
-          console.log(error);
+            console.log(error);
         }
     }
-
 
     return (
     <>
@@ -72,25 +79,21 @@ export default function DocumentList() {
                 <Table>
                     <TableHead>
                         <TableRow>
-                            <TableCell>Name</TableCell>
+                            <TableCell>Title</TableCell>
                             <TableCell>Category</TableCell>
                             <TableCell>Actions</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
                         {documents.map((document) => <TableRow key={document._id}>
-                            <TableCell>{document.name}</TableCell>
+                            <TableCell>{document.title}</TableCell>
                             <TableCell>{document.category}</TableCell>
                             <TableCell>
                                 <IconButton component={Link} to={`/update/${document._id}`}>
-                                    <Edit
-                                        sx={{color: 'dodgerblue'}}
-                                    />
+                                    <Edit sx={{color: 'dodgerblue'}} />
                                 </IconButton>
-                                <IconButton onClick={() => deleteDocument(document._id)}>
-                                    <Delete
-                                        sx={{color: 'dimgray'}}
-                                    />
+                                <IconButton onClick={() => deleteDocument(document._id, document.fileName)}>
+                                    <Delete sx={{color: 'dimgray'}} />
                                 </IconButton>
                             </TableCell>
                             </TableRow>)}
@@ -100,4 +103,4 @@ export default function DocumentList() {
         </Box>
     </>
     );
-}
+};

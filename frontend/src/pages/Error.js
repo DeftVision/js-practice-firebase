@@ -1,5 +1,5 @@
 import { Box, Typography } from '@mui/material'
-const Error = () => {
+export default function Error () {
     return (
         <Box>
             <Typography>
@@ -9,4 +9,3 @@ const Error = () => {
     );
 };
 
-export default Error;
