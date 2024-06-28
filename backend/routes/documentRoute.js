@@ -6,7 +6,7 @@ const {getDocuments, getDocument, deleteDocument, updateDocument, newDocument} =
 
 router.get("/documents", getDocuments)
 router.get("/document/:id", getDocument)
-router.post("/new-document", newDocument)
+router.post("/new", newDocument)
 router.patch("/update/:id", updateDocument)
 router.delete("/delete/:id", deleteDocument)
 

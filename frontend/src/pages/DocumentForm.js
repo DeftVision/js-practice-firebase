@@ -3,13 +3,14 @@ import { getStorage, ref, uploadBytesResumable, getDownloadURL, deleteObject } f
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import { useParams } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import {app} from '../components/firebase';
+import { v4 as uuidv4 } from 'uuid';
+import { app } from '../components/firebase';
 
 const form_default = {
     title: "",
     category: "",
     downloadUrl: "",
-    fileName: ""
+    uniqueFileName: "",
 };
 
 export default function DocumentForm({ newDocument }) {
@@ -43,8 +44,9 @@ export default function DocumentForm({ newDocument }) {
 
             const _response = await response.json();
             if (response.ok) {
-                const { title, category, downloadUrl, fileName } = _response.document;
-                setForm({ title, category, downloadUrl, fileName });
+                const { title, category, downloadUrl, uniqueFileName } = _response.document;
+                setForm({ title, category, downloadUrl, uniqueFileName });
+
             } else {
                 console.error('Error occurred while fetching document');
             }
@@ -52,10 +54,11 @@ export default function DocumentForm({ newDocument }) {
         if (!newDocument) {
             editDocument();
         }
-    }, [id, newDocument]);
+    }, [id]);
 
     const handleFileChange = (e) => {
         const selectedFile = e.target.files[0];
+
         if (selectedFile) {
             setFileName(selectedFile.name);
             setFile(selectedFile);
@@ -75,8 +78,9 @@ export default function DocumentForm({ newDocument }) {
 
     const uploadFileToFirebase = async () => {
         if (file) {
+            const uniqueFileName = `${uuidv4()}-${file.name}`
             const storage = getStorage();
-            const storageRef = ref(storage, `uploads/${file.name}`);
+            const storageRef = ref(storage, `uploads/${uniqueFileName}`);
             const uploadTask = uploadBytesResumable(storageRef, file);
 
             setUploading('uploading');
@@ -100,7 +104,7 @@ export default function DocumentForm({ newDocument }) {
                     ...prevForm,
                     downloadUrl,
                     // Set the value of file stored in firebase to find and update/delete
-                    fileName: file.name
+                    uniqueFileName,
                 }));
                 setUploading('success');
             } catch (error) {
@@ -114,7 +118,7 @@ export default function DocumentForm({ newDocument }) {
     };
 
     const saveToDb = async () => {
-        let url = 'http://localhost:8004/api/docs/new-document/';
+        let url = 'http://localhost:8004/api/docs/new/';
         let method = 'POST';
 
         if (!newDocument) {
@@ -140,10 +144,11 @@ export default function DocumentForm({ newDocument }) {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        console.log(form.file, newDocument);
         if (form.title && form.category) {
             try {
-                if(!newDocument && form.fileName) {
-                    await deleteExistingFile(`uploads/${form.fileName}`);
+                if(!newDocument && file) {
+                    await deleteExistingFile(`uploads/${form.uniqueFileName}`);
                 }
                 await uploadFileToFirebase();
                 if (form.downloadUrl) {

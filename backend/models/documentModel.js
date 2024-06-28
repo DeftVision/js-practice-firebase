@@ -15,7 +15,7 @@ const documentSchema = new schema({
         type: String,
         require: true,
     },
-    fileName:{
+    uniqueFileName:{
         type: String,
         require: true,
     }
